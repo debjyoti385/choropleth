@@ -3,6 +3,7 @@
 <head>
 	<title>India Chloropleth</title>
 	<meta charset="utf-8" />
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -10,8 +11,8 @@
 
 	<style>
 		#map {
-			width: 1200px;
-			height: 680px;
+			width: 800px;
+			height: 100%;
 		}
 
 		.info {
@@ -47,49 +48,40 @@
 	<script src="leaflet.js"></script>
 
     <!-- <script type="text/javascript" src="indian_states.js"></script> -->
-     <script type="text/javascript" src="../output/final.js"></script> 
+     <script type="text/javascript" src="../output/final1.js"></script> 
+
+	<select style = "position:absolute;right:10px; top: 130px;" name="aa" onchange="reload(this.value)"> 
+	<option value="">Map</option>
+	<option value="0">0</option>
+	<option value="1">1</option>
+	</select>
+
 	<script type="text/javascript">
 
-		var map = L.map('map').setView([21.1289956,82.779], 4);
+	// get color depending on population density value
+	function getColor(d) {
+		return d > 100 ? '#800026' :
+		       d > 50  ? '#BD0026' :
+		       d > 20  ? '#E31A1C' :
+		       d > 10  ? '#FC4E2A' :
+		       d > 5   ? '#FD8D3C' :
+		       d > 2   ? '#FEB24C' :
+		       d > 1   ? '#FED976' :
+		                  '#FFEDA0';
+	}
 
-		L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ',
-			id: 'examples.map-20v6611k'
-		}).addTo(map);
+	
 
+	function reload(value){
+		if (value === "0")
+			states = statesData;
+		else 
+			states = statesData1;
+		refresh(states);
+	}
 
-		// control that shows state info on hover
-		var info = L.control();
-
-		info.onAdd = function (map) {
-			this._div = L.DomUtil.create('div', 'info');
-			this.update();
-			return this._div;
-		};
-
-		info.update = function (props) {
-			this._div.innerHTML = '<h4>India </h4>' +  (props ?
-				'<b>' + props.name + '</b><br /> ' + props.density + ' units'
-				//' people / mi<sup>2</sup>'
-				: 'Hover over a state');
-		};
-
-		info.addTo(map);
-
-
-		// get color depending on population density value
-		function getColor(d) {
-			return d > 100 ? '#800026' :
-			       d > 50  ? '#BD0026' :
-			       d > 20  ? '#E31A1C' :
-			       d > 10  ? '#FC4E2A' :
-			       d > 5   ? '#FD8D3C' :
-			       d > 2   ? '#FEB24C' :
-			       d > 1   ? '#FED976' :
-			                  '#FFEDA0';
-		}
-
+	function refresh(states){
+	
 		function style(feature) {
 			return {
 				weight: 2,
@@ -137,38 +129,75 @@
 			});
 		}
 
-		geojson = L.geoJson(statesData, {
+		geojson = L.geoJson(states, {
 			style: style,
 			onEachFeature: onEachFeature
 		}).addTo(map);
 
-		map.attributionControl.addAttribution('');
+		map.attributionControl.addAttribution(' ');
 
 
-		var legend = L.control({position: 'bottomright'});
+		
 
-		legend.onAdd = function (map) {
+	}
+	
+	
+	
+	var map = L.map('map').setView([21.1289956,82.779], 4);
+	L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+		maxZoom: 18,
+		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ',
+		id: 'examples.map-20v6611k'
+	}).addTo(map);
+	
+	map.invalidateSize();
+	var legend = L.control({position: 'bottomright'});
 
-			var div = L.DomUtil.create('div', 'info legend'),
-				grades = [0, 1, 2, 5, 10, 20, 50, 100],
-				labels = [],
-				from, to;
+	legend.onAdd = function (map) {
 
-			for (var i = 0; i < grades.length; i++) {
-				from = grades[i];
-				to = grades[i + 1];
+		var div = L.DomUtil.create('div', 'info legend'),
+			grades = [0, 1, 2, 5, 10, 20, 50, 100],
+			labels = [],
+			from, to;
 
-				labels.push(
-					'<i style="background:' + getColor(from + 1) + '"></i> ' +
-					from + (to ? '&ndash;' + to : '+'));
-			}
+		for (var i = 0; i < grades.length; i++) {
+			from = grades[i];
+			to = grades[i + 1];
 
-			div.innerHTML = labels.join('<br>');
-			return div;
-		};
+			labels.push(
+				'<i style="background:' + getColor(from + 1) + '"></i> ' +
+				from + (to ? '&ndash;' + to : '+'));
+		}
 
-		legend.addTo(map);
+		div.innerHTML = labels.join('<br>');
+		return div;
+	};
 
+	legend.addTo(map);
+
+	// control that shows state info on hover
+	var info = L.control();
+
+	info.onAdd = function (map) {
+		this._div = L.DomUtil.create('div', 'info');
+		this.update();
+		return this._div;
+	};
+
+	info.update = function (props) {
+		this._div.innerHTML = '<h4>India </h4>' +  (props ?
+			'<b>' + props.name + '</b><br /> ' + props.density + ' units'
+			//' people / mi<sup>2</sup>'
+			: 'Hover over a state');
+	};
+	info.addTo(map);
+
+	$(window).on("resize", function() {
+	    $("#map").height($(window).height()).width($(window).width());
+	    map.invalidateSize();
+	}).trigger("resize");
+
+	refresh(statesData1);
 	</script>
 </body>
 </html>
