@@ -1,4 +1,4 @@
-chloropleth
+choropleth
 ===========
 
 Indian States Geometry 
