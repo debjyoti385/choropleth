@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>India Chloropleth</title>
+	<meta charset="utf-8" />
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="leaflet.css" />
+
+    <script src="js/leaflet.js"></script>
+    <script type="text/javascript" src="js/leaflet.ajax.js"></script>
+    <script src="js/spin.js"></script>
+    <script src="js/leaflet.spin.js"></script>
+
+	<style>
+		#map {
+			width: 800px;
+			height: 100%;
+		}
+
+		.info {
+			padding: 6px 8px;
+			font: 14px/16px Arial, Helvetica, sans-serif;
+			background: white;
+			background: rgba(255,255,255,0.8);
+			box-shadow: 0 0 15px rgba(0,0,0,0.2);
+			border-radius: 5px;
+		}
+		.info h4 {
+			margin: 0 0 5px;
+			color: #777;
+		}
+
+		.legend {
+			text-align: left;
+			line-height: 18px;
+			color: #555;
+		}
+		.legend i {
+			width: 18px;
+			height: 18px;
+			float: left;
+			margin-right: 8px;
+			opacity: 0.7;
+		}
+	</style>
+</head>
+<body>
+	<div id="map"></div>
+
+    <!-- <script type="text/javascript" src="indian_states.js"></script> -->
+    <!-- <script type="text/javascript" src="../output/final1.js"></script> -->
+
+    <button style = "position:absolute;right:10px; top: 20px;" type="button" onclick="reloadBaseMap()">All Indian States</button>
+
+	<select style = "position:absolute;right:10px; top: 130px;" name="aa" onchange="reload(this.value)"> 
+	<option value="">Map</option>
+	<option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+    <option value="9">9</option>
+    <option value="10">10</option>
+    <option value="11">11</option>
+    <option value="12">12</option>
+    <option value="13">13</option>
+    <option value="14">14</option>
+    <option value="15">15</option>
+    <option value="16">16</option>
+    <option value="17">17</option>
+    <option value="18">18</option>
+    <option value="19">19</option>
+    <option value="20">20</option>
+    <option value="21">21</option>
+    <option value="22">22</option>
+    <option value="23">23</option>
+    <option value="24">24</option>
+    <option value="25">25</option>
+    <option value="26">26</option>
+    <option value="27">27</option>
+    <option value="28">28</option>
+    <option value="29">29</option>
+    <option value="30">30</option>
+    <option value="31">31</option>
+    <option value="32">32</option>
+    <option value="33">33</option>
+    <option value="34">34</option>
+	<option value="35">35</option>
+	</select>
+
+	<script type="text/javascript">
+
+	var geojson;
+
+	var map = L.map('map').setView([21.1289956,82.779], 4);
+	L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+		maxZoom: 18,
+		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ',
+		id: 'examples.map-20v6611k'
+	}).addTo(map);
+	
+
+	function reload(value){
+		map.removeLayer(geojson);
+    	geojson = new L.GeoJSON.AJAX(["../map/districts/"+value+".geojson"], {
+			onEachFeature:popUp 
+		}).addTo(map);
+
+	}
+
+	
+function popUp(f,l){
+    var out = [];
+    if (f.properties){
+        for(key in f.properties){
+            out.push(key+": "+f.properties[key]);
+        }
+            out.push('<a href="#" onclick="reload('+f.properties["ID_1"]+');"> Show Districts of ' + f.properties["NAME_1"]+"</a>")
+        l.bindPopup(out.join("<br />"));
+    }
+
+}
+
+function loadBaseMap(){
+    geojson = new L.GeoJSON.AJAX(["../map/indian_states.geojson"], {
+        onEachFeature:popUp 
+    }).addTo(map);
+    map.attributionControl.addAttribution(' ');
+
+}
+function reloadBaseMap(){
+    map.removeLayer(geojson);
+    loadBaseMap();
+}
+
+		
+	map.invalidateSize();
+	var legend = L.control({position: 'bottomright'});
+
+
+	$(window).on("resize", function() {
+	    $("#map").height($(window).height()).width($(window).width());
+	    map.invalidateSize();
+	}).trigger("resize");
+
+    loadBaseMap();
+	</script>
+</body>
+</html>
