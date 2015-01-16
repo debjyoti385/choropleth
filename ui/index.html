@@ -58,6 +58,16 @@
 
 	<script type="text/javascript">
 
+	var geojson;
+
+	var map = L.map('map').setView([21.1289956,82.779], 4);
+	L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+		maxZoom: 18,
+		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ',
+		id: 'examples.map-20v6611k'
+	}).addTo(map);
+	
+
 	// get color depending on population density value
 	function getColor(d) {
 		return d > 100 ? '#800026' :
@@ -77,6 +87,7 @@
 			states = statesData;
 		else 
 			states = statesData1;
+        map.removeLayer(geojson);
 		refresh(states);
 	}
 
@@ -110,7 +121,6 @@
 			info.update(layer.feature.properties);
 		}
 
-		var geojson;
 
 		function resetHighlight(e) {
 			geojson.resetStyle(e.target);
@@ -143,13 +153,7 @@
 	
 	
 	
-	var map = L.map('map').setView([21.1289956,82.779], 4);
-	L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-		maxZoom: 18,
-		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ',
-		id: 'examples.map-20v6611k'
-	}).addTo(map);
-	
+
 	map.invalidateSize();
 	var legend = L.control({position: 'bottomright'});
 
