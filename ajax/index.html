@@ -53,7 +53,7 @@
     <!-- <script type="text/javascript" src="indian_states.js"></script> -->
     <!-- <script type="text/javascript" src="../output/final1.js"></script> -->
 
-    <button style = "position:absolute;right:10px; top: 20px;" type="button" onclick="reloadBaseMap()">All Indian States</button>
+    <button style = "position:absolute;right:10px; top: 100px;" type="button" onclick="reloadBaseMap()">All Indian States</button>
 
 	<select style = "position:absolute;right:10px; top: 130px;" name="aa" onchange="reload(this.value)"> 
 	<option value="">Map</option>
@@ -109,7 +109,8 @@
 	function reload(value){
 		map.removeLayer(geojson);
     	geojson = new L.GeoJSON.AJAX(["../map/districts/"+value+".geojson"], {
-			onEachFeature:popUp 
+            style:style,
+			onEachFeature:onEachFeature 
 		}).addTo(map);
 
 	}
@@ -129,7 +130,8 @@ function popUp(f,l){
 
 function loadBaseMap(){
     geojson = new L.GeoJSON.AJAX(["../map/indian_states.geojson"], {
-        onEachFeature:popUp 
+        style:style,
+        onEachFeature:onEachFeature 
     }).addTo(map);
     map.attributionControl.addAttribution(' ');
 
@@ -139,10 +141,92 @@ function reloadBaseMap(){
     loadBaseMap();
 }
 
-		
-	map.invalidateSize();
-	var legend = L.control({position: 'bottomright'});
+function getColor(d) {
+    return d > 100 ? '#800026' :
+            d > 50  ? '#BD0026' :
+            d > 20  ? '#E31A1C' :
+            d > 10  ? '#FC4E2A' :
+            d > 5   ? '#FD8D3C' :
+            d > 2   ? '#FEB24C' :
+            d > 1   ? '#FED976' :
+                        '#FFEDA0';
+}
+function style(feature) {
+    return {
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7,
+//        fillColor: getColor(feature.properties.density)
+//        fillColor: getColor(feature.properties.value)
+        fillColor: getColor(feature.properties.ID_2 == undefined ? feature.properties.ID_1 : Math.floor((Math.random() * 100) + 1)  )
+    };
+}
 
+function highlightFeature(e) {
+    var layer = e.target;
+    layer.setStyle({
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
+    });
+    if (!L.Browser.ie && !L.Browser.opera) {
+        layer.bringToFront();
+    }
+    info.update(layer.feature.properties);
+}
+
+
+function resetHighlight(e) {
+    geojson.resetStyle(e.target);
+    info.update();
+}
+function zoomToFeature(e) {
+    map.fitBounds(e.target.getBounds());
+}
+function onEachFeature(feature, layer) {
+    popUp(feature,layer);
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: zoomToFeature
+    });
+}
+
+var info = L.control();
+info.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info');
+    this.update();
+    return this._div;
+};
+info.update = function (props) {
+    this._div.innerHTML = '<h4>India </h4>' +  (props ?
+            (props.NAME_2 == undefined ? '<b>' + props.NAME_1 + '</b><br /> ' + props.ID_1 + ' units' :
+             '<b>' + props.NAME_1 + '</b><br /> '+ props.NAME_2 +'<br/>' + props.ID_2 + ' units' )
+        //' people / mi<sup>2</sup>'
+        : 'Hover over a state');
+};
+info.addTo(map);
+		
+	var legend = L.control({position: 'bottomright'});
+	legend.onAdd = function (map) {
+		var div = L.DomUtil.create('div', 'info legend'),
+			grades = [0, 1, 2, 5, 10, 20, 50, 100],
+			labels = [],
+			from, to;
+		for (var i = 0; i < grades.length; i++) {
+			from = grades[i];
+			to = grades[i + 1];
+			labels.push(
+				'<i style="background:' + getColor(from + 1) + '"></i> ' +
+				from + (to ? '&ndash;' + to : '+'));
+		}
+		div.innerHTML = labels.join('<br>');
+		return div;
+	};
+	legend.addTo(map);
 
 	$(window).on("resize", function() {
 	    $("#map").height($(window).height()).width($(window).width());
